@@ -1,0 +1,24 @@
+# manifests/broken-deployment.yaml
+# Bug: image tag doesn't exist -> ImagePullBackOff / ErrImagePull.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: broken-deployment
+  namespace: k8sgpt-lab
+  labels:
+    app: broken-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: broken-deployment
+  template:
+    metadata:
+      labels:
+        app: broken-deployment
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.0-does-not-exist
+          ports:
+            - containerPort: 80
