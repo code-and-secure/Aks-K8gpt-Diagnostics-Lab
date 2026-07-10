@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # scripts/install-k8sgpt.sh
-# Installs the K8sGPT CLI and configures it to use OpenAI as the AI backend.
-# Requires OPENAI_API_KEY to be set in your environment before running.
+# Installs the K8sGPT CLI and configures it to use Groq (free tier, OpenAI-
+# compatible API) as the AI backend.
+# Requires GROQ_API_KEY to be set in your environment before running.
 set -euo pipefail
 
-if [[ -z "${OPENAI_API_KEY:-}" ]]; then
-  echo "Error: set OPENAI_API_KEY in your environment first, e.g.:"
-  echo "  export OPENAI_API_KEY=sk-..."
+if [[ -z "${GROQ_API_KEY:-}" ]]; then
+  echo "Error: set GROQ_API_KEY in your environment first, e.g.:"
+  echo "  export GROQ_API_KEY=gsk_..."
+  echo "Get a free key at https://console.groq.com/keys"
   exit 1
 fi
 
@@ -34,8 +36,9 @@ fi
 
 k8sgpt version
 
-echo "Configuring OpenAI backend..."
-k8sgpt auth add --backend openai --model gpt-4o-mini --password "${OPENAI_API_KEY}"
-k8sgpt auth default --provider openai
+echo "Configuring Groq backend (via the OpenAI-compatible 'localai' provider)..."
+k8sgpt auth add --backend localai --model llama-3.3-70b-versatile \
+  --baseurl https://api.groq.com/openai/v1 --password "${GROQ_API_KEY}"
+k8sgpt auth default --provider localai
 
 echo "Done. Try: k8sgpt analyze --explain --namespace k8sgpt-lab"

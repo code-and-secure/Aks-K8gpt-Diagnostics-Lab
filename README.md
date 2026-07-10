@@ -3,8 +3,9 @@
 Practice project pairing Infrastructure-as-Code (Bicep, from the earlier
 project) with an AI-powered Kubernetes diagnostic tool. You'll provision a
 minimal AKS cluster, deploy a few intentionally broken workloads, then use
-[K8sGPT](https://k8sgpt.ai/docs/getting-started/installation) with an OpenAI
-backend to get plain-English root-cause explanations for each failure.
+[K8sGPT](https://k8sgpt.ai/docs/getting-started/installation) with a
+[Groq](https://console.groq.com/keys) backend (free tier, OpenAI-compatible
+API) to get plain-English root-cause explanations for each failure.
 
 ## ⚠️ Cost warning — read this first
 
@@ -14,8 +15,9 @@ Unlike the free-tier Bicep project, **this one is not free**:
 - The **worker node** is a real VM (`Standard_B2s`, ~$0.02–0.04/hour
   depending on region) and **you pay for it as long as it exists**, even
   if it's just sitting idle overnight.
-- OpenAI API calls for `k8sgpt analyze --explain` cost a small amount per
-  call (new accounts get some free credit — check your OpenAI usage page).
+- `k8sgpt analyze --explain` calls Groq's free-tier API — no cost, but
+  free-tier rate limits apply (see your
+  [Groq console](https://console.groq.com/settings/limits)).
 
 **Run `scripts/cleanup.sh` every time you're done for the session.** Don't
 leave the cluster running between practice sessions.
@@ -35,7 +37,7 @@ aks-k8sgpt-lab/
 │   └── missing-configmap-pod.yaml  # references a ConfigMap that doesn't exist
 └── scripts/
     ├── deploy-cluster.sh       # az deployment sub create + get-credentials
-    ├── install-k8sgpt.sh       # installs K8sGPT CLI, configures OpenAI backend
+    ├── install-k8sgpt.sh       # installs K8sGPT CLI, configures Groq backend
     ├── run-scan.sh             # applies broken manifests, runs k8sgpt analyze
     └── cleanup.sh              # deletes the resource group (stops billing)
 ```
@@ -44,7 +46,7 @@ aks-k8sgpt-lab/
 
 - Azure CLI, logged in (`az login`), Bicep installed (`az bicep install`)
 - `kubectl` installed
-- An OpenAI account with an API key (openai.com → API keys)
+- A free Groq account with an API key ([console.groq.com/keys](https://console.groq.com/keys))
 - Homebrew (recommended) or `kubectl krew`, for installing K8sGPT — see the
   [K8sGPT installation options](https://k8sgpt.ai/docs/getting-started/installation)
   for alternatives on Linux/Windows if you don't use Homebrew
@@ -58,7 +60,7 @@ chmod +x scripts/*.sh
 ./scripts/deploy-cluster.sh eastus
 
 # 2. Install and configure K8sGPT
-export OPENAI_API_KEY=sk-...
+export GROQ_API_KEY=gsk_...
 ./scripts/install-k8sgpt.sh
 
 # 3. Deploy broken workloads and scan them
@@ -97,7 +99,7 @@ that comparison is the actual learning exercise.
    short-lived cluster, runs `k8sgpt analyze`, and fails the build if any
    `error` severity issues are found — a taste of policy-as-code.
 6. **Swap backends.** Try K8sGPT's local/offline model option and compare
-   explanation quality and latency against OpenAI.
+   explanation quality and latency against Groq.
 
 ## Cleanup checklist
 
