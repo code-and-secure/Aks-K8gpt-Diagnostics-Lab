@@ -13,8 +13,8 @@ param location string = 'eastus'
 @description('Environment tag, e.g. dev, test')
 param environment string = 'dev'
 
-@description('VM size for the single system node. B2s is the cheapest widely-available size.')
-param nodeVmSize string = 'Standard_B2s'
+@description('VM size for the single system node. B2s_v2 is cheap and widely available; some subscriptions (e.g. free trial/spending-limit) restrict the older B2s in certain regions.')
+param nodeVmSize string = 'Standard_B2s_v2'
 
 @description('Kubernetes version. Leave empty to use the region default.')
 param kubernetesVersion string = ''

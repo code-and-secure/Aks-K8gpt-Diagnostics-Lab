@@ -1,6 +1,9 @@
 // infra/modules/aks.bicep
 // Single-node AKS cluster, Free tier control plane (no SLA, no charge),
 // sized to keep worker-node cost as low as possible for practice.
+// nodeVmSize availability varies by subscription type and region — if a
+// deployment fails with "VM size ... is not allowed", check the allowed
+// list in the error and pick a substitute (e.g. Standard_B2s_v2).
 
 param location string
 param projectName string
