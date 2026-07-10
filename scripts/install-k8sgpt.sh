@@ -19,17 +19,27 @@ if command -v brew >/dev/null 2>&1; then
   brew install k8sgpt
 elif command -v kubectl >/dev/null 2>&1 && kubectl krew version >/dev/null 2>&1; then
   kubectl krew install k8sgpt
+elif [[ "$(uname -s)" == MINGW* || "$(uname -s)" == MSYS* ]]; then
+  echo "Homebrew/Krew not found — installing the Windows binary directly (Git Bash detected)."
+  INSTALL_DIR="${HOME}/bin"
+  mkdir -p "${INSTALL_DIR}"
+  curl -fsSL -o /tmp/k8sgpt.zip \
+    https://github.com/k8sgpt-ai/k8sgpt/releases/latest/download/k8sgpt_Windows_x86_64.zip
+  unzip -o /tmp/k8sgpt.zip -d /tmp
+  mv /tmp/k8sgpt.exe "${INSTALL_DIR}/k8sgpt.exe"
+  case ":${PATH}:" in
+    *":${INSTALL_DIR}:"*) ;;
+    *) echo "Add ${INSTALL_DIR} to your PATH (e.g. in ~/.bashrc): export PATH=\"${INSTALL_DIR}:\$PATH\"" ;;
+  esac
+  export PATH="${INSTALL_DIR}:${PATH}"
 else
   echo "Homebrew/Krew not found — installing the latest Linux binary directly."
   ARCH="$(uname -m)"
   case "${ARCH}" in
-    x86_64) ARCH="amd64" ;;
     aarch64) ARCH="arm64" ;;
   esac
-  LATEST_URL=$(curl -s https://api.github.com/repos/k8sgpt-ai/k8sgpt/releases/latest \
-    | grep "browser_download_url.*linux_${ARCH}.tar.gz\"" \
-    | cut -d '"' -f 4)
-  curl -fsSL -o /tmp/k8sgpt.tar.gz "${LATEST_URL}"
+  curl -fsSL -o /tmp/k8sgpt.tar.gz \
+    "https://github.com/k8sgpt-ai/k8sgpt/releases/latest/download/k8sgpt_Linux_${ARCH}.tar.gz"
   tar -xzf /tmp/k8sgpt.tar.gz -C /tmp
   sudo mv /tmp/k8sgpt /usr/local/bin/k8sgpt
 fi
