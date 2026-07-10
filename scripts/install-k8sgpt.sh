@@ -38,10 +38,17 @@ else
   case "${ARCH}" in
     aarch64) ARCH="arm64" ;;
   esac
+  INSTALL_DIR="${HOME}/bin"
+  mkdir -p "${INSTALL_DIR}"
   curl -fsSL -o /tmp/k8sgpt.tar.gz \
     "https://github.com/k8sgpt-ai/k8sgpt/releases/latest/download/k8sgpt_Linux_${ARCH}.tar.gz"
   tar -xzf /tmp/k8sgpt.tar.gz -C /tmp
-  sudo mv /tmp/k8sgpt /usr/local/bin/k8sgpt
+  mv /tmp/k8sgpt "${INSTALL_DIR}/k8sgpt"
+  case ":${PATH}:" in
+    *":${INSTALL_DIR}:"*) ;;
+    *) echo "Add ${INSTALL_DIR} to your PATH (e.g. in ~/.bashrc): export PATH=\"${INSTALL_DIR}:\$PATH\"" ;;
+  esac
+  export PATH="${INSTALL_DIR}:${PATH}"
 fi
 
 k8sgpt version
