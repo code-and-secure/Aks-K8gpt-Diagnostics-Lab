@@ -3,7 +3,7 @@
 # Deploys the AKS cluster defined in infra/main.bicep.
 set -euo pipefail
 
-LOCATION="${1:-eastus}"
+LOCATION="${1:-koreacentral}"
 
 echo "Deploying AKS cluster to region: ${LOCATION}"
 

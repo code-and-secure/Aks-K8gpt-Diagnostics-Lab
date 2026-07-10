@@ -8,7 +8,7 @@ targetScope = 'subscription'
 param projectName string = 'aksk8sgpt'
 
 @description('Azure region for all resources')
-param location string = 'eastus'
+param location string = 'koreacentral'
 
 @description('Environment tag, e.g. dev, test')
 param environment string = 'dev'
