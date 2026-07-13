@@ -35,6 +35,49 @@ learn to read Kubernetes failures faster either way.
    error details to Groq's AI model, and prints back a plain-English
    explanation + suggested fix for each one.
 
+## Architecture
+
+```mermaid
+flowchart TD
+    subgraph local["Your machine / Cloud Shell"]
+        cli["Azure CLI + kubectl + k8sgpt CLI"]
+        scripts["scripts/*.sh"]
+        bicep["infra/*.bicep"]
+        manifests["manifests/*.yaml"]
+    end
+
+    subgraph azure["Azure subscription"]
+        subgraph rg["Resource group: rg-aksk8sgpt-dev"]
+            subgraph aks["AKS cluster (Free-tier control plane)"]
+                node["1x Standard_B2s_v2 worker node"]
+                subgraph ns["Namespace: k8sgpt-lab"]
+                    p1["broken-deployment\n(bad image tag)"]
+                    p2["crashloop-pod\n(exits with code 1)"]
+                    p3["missing-configmap-pod\n(missing ConfigMap)"]
+                end
+                node --- ns
+            end
+        end
+    end
+
+    groq["Groq API\n(OpenAI-compatible, free tier)"]
+
+    scripts -- "az deployment sub create" --> bicep
+    bicep -- provisions --> aks
+    scripts -- "kubectl apply" --> manifests
+    manifests -- deployed into --> ns
+    cli -- "kubectl get/describe" --> ns
+    cli -- "k8sgpt analyze --explain" --> ns
+    cli -- "sends error details, gets explanation" --> groq
+    scripts -- "az group delete" --> rg
+```
+
+Everything under `azure/` is real, billable infrastructure. Everything
+under `local/` (scripts, Bicep source, manifests) is just files in this
+repo — deleting the repo doesn't delete the cluster, and deleting the
+cluster doesn't delete the repo. They're cleaned up separately (see
+[Deleting everything](#deleting-everything) below).
+
 ## ⚠️ Cost warning — read this first
 
 Unlike the free-tier Bicep project, **this one is not free**:
@@ -187,6 +230,38 @@ Just want to clear the broken workloads without tearing down the whole
 cluster (e.g. mid-session, after editing a manifest)? Use
 `./scripts/reset-lab.sh` instead — it only deletes the `k8sgpt-lab`
 namespace and leaves the cluster running (still billing).
+
+## Deleting everything
+
+There are 4 separate things this lab creates, and cleaning up "all of it"
+means undoing each one individually — deleting one does **not** delete
+the others.
+
+```bash
+# 1. Delete the Azure resource group (stops the VM billing) and the
+#    matching local kubeconfig context/cluster/user entries
+./scripts/cleanup.sh rg-aksk8sgpt-dev aks-aksk8sgpt
+
+# 2. (Optional) Confirm nothing Azure-side survived
+az group exists --name rg-aksk8sgpt-dev   # should print "false"
+
+# 3. (Optional) Remove the k8sgpt CLI binary and its saved config
+rm -f ~/bin/k8sgpt ~/bin/k8sgpt.exe
+rm -rf ~/.k8sgpt
+
+# 4. (Optional) Remove the GROQ_API_KEY from your current shell session
+unset GROQ_API_KEY
+# and delete the key itself at https://console.groq.com/keys if you no
+# longer need it
+
+# 5. (Optional) Remove this repo from your machine entirely
+cd ..
+rm -rf Aks-K8gpt-Diagnostics-Lab
+```
+
+Step 1 is the one that actually matters for cost — steps 3-5 are just
+local housekeeping if you're done with the lab for good, not per-session
+cleanup.
 
 ## License and security
 
